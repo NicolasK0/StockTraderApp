@@ -59,13 +59,13 @@ struct SearchMatch: Codable {
     let type: String
     let region: String
     let marketOpen: String
-    let marketCLose: String
+    let marketClose: String
     let timezone: String
     let currency: String
     let matchScore: String
     
     enum CodingKeys: String, CodingKey {
-        case Symbol = "1. symbol"
+        case symbol = "1. symbol"
         case name = "2. name"
         case type = "3. type"
         case region = "4. region"

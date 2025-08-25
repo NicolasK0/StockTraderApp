@@ -10,18 +10,22 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            // Search tab content will go here
             SearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
                     Text("Search")
                 }
             
-            // Watchlist tab content will go here
             WatchlistView()
                 .tabItem {
                     Image(systemName: "star.fill")
                     Text("Watchlist")
+                }
+            
+            PortfolioView()
+                .tabItem {
+                    Image(systemName: "chart.pie.fill")
+                    Text("Portfolio")
                 }
         }
     }

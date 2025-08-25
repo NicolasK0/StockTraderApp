@@ -8,12 +8,37 @@
 import Foundation
 
 struct Stock: Identifiable, Codable {
-    let id = UUID()
     let symbol: String
     let companyName: String
     let currentPrice: Double
     let priceChange: Double
     let percentChange: Double
+    
+    
+    // Custom initializer for API data
+    init(symbol: String, companyName: String, currentPrice: Double, priceChange: Double, percentChange: Double) {
+        self.symbol = symbol
+        self.companyName = companyName
+        self.currentPrice = currentPrice
+        self.priceChange = priceChange
+        self.percentChange = percentChange
+    }
+    
+    // Initializer from API strings with safe conversion
+    init(symbol: String, companyName: String, priceString: String, changeString: String, percentString: String) {
+        self.symbol = symbol
+        self.companyName = companyName
+        self.currentPrice = Double(priceString) ?? 0.0
+        self.priceChange = Double(changeString) ?? 0.0
+        
+        // Remove % symbol and convert to double
+        let cleanPercent = percentString.replacingOccurrences(of: "%", with: "")
+        self.percentChange = Double(cleanPercent) ?? 0.0
+    }
+    
+    var id: String {
+        return symbol
+    }
     
     // Computed property to determine if stock is up or down
     var isPositive: Bool {
@@ -35,6 +60,48 @@ struct Stock: Identifiable, Codable {
     var formattedPercentChange: String {
         let sign = isPositive ? "+" : ""
         return String(format: "%@%.2f%%", sign, percentChange)
+    }
+    
+    // Add this to your existing Stock struct (after the existing properties)
+    
+    // MARK: - Codable Implementation
+    enum CodingKeys: String, CodingKey {
+        case symbol
+        case companyName
+        case currentPrice
+        case priceChange
+        case percentChange
+    }
+    
+    // Custom decoder to handle edge cases
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        symbol = try container.decode(String.self, forKey: .symbol)
+        companyName = try container.decode(String.self, forKey: .companyName)
+        currentPrice = try container.decodeIfPresent(Double.self, forKey: .currentPrice) ?? 0.0
+        priceChange = try container.decodeIfPresent(Double.self, forKey: .priceChange) ?? 0.0
+        percentChange = try container.decodeIfPresent(Double.self, forKey: .percentChange) ?? 0.0
+    }
+    
+    // Custom encoder for reliable storage
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(symbol, forKey: .symbol)
+        try container.encode(companyName, forKey: .companyName)
+        try container.encode(currentPrice, forKey: .currentPrice)
+        try container.encode(priceChange, forKey: .priceChange)
+        try container.encode(percentChange, forKey: .percentChange)
+    }
+    
+    // MARK: - Equality for watchlist management
+    static func == (lhs: Stock, rhs: Stock) -> Bool {
+        return lhs.symbol == rhs.symbol
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(symbol)
     }
 }
 
