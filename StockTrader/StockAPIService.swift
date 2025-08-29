@@ -80,6 +80,12 @@ class StockAPIService: ObservableObject {
     
     // Replace the existing getStockQuote method with this improved version
     func getStockQuote(symbol: String) async throws -> Stock {
+        return try await performWithTimeout {
+            return try await self.getStockQuoteWithoutTimeout(symbol: symbol)
+        }
+    }
+    
+    private func getStockQuoteWithoutTimeout(symbol: String) async throws -> Stock {
         guard !symbol.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw APIError.invalidSymbol
         }
@@ -164,6 +170,7 @@ class StockAPIService: ObservableObject {
         case apiLimitExceeded
         case invalidSymbol
         case malformedResponse
+        case timeout
         
         var errorDescription: String? {
             switch self {
@@ -181,6 +188,8 @@ class StockAPIService: ObservableObject {
                 return "Stock symbol not found"
             case .malformedResponse:
                 return "Received unexpected response format"
+            case .timeout:
+                return "Request timed out. Please check your connection and try again."
             }
         }
     }
@@ -214,6 +223,25 @@ class StockAPIService: ObservableObject {
         }
     }
     
+    private func performWithTimeout<T>(_ operation: @escaping () async throws -> T, timeout: TimeInterval = 15.0) async throws -> T {
+        return try await withThrowingTaskGroup(of: T.self) { group in
+            // Add the main operation
+            group.addTask {
+                return try await operation()
+            }
+            
+            // Add timeout task
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw APIError.timeout
+            }
+            
+            // Return the first completed task
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
+    }
     
     func testAPIConnection() async -> Bool {
         do {

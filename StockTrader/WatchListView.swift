@@ -26,18 +26,21 @@ struct WatchlistView: View {
     @State private var updatingStocks: Set<String> = [] // Track which stocks are being updated
     
     private var hasSelectedStocks: Bool {
-        !selectedStocks.isEmpty
+        return !selectedStocks.isEmpty
     }
+    
     private var selectedStockCount: Int {
-        selectedStocks.count
+        return selectedStocks.count
     }
     
     private var watchlistStats: (count: Int, totalValue: Double, gainers: Int, losers: Int) {
         let stocks = watchlistStorage.watchlistStocks
-        let count = stocks.count
-        let totalValue = stocks.reduce(0) { $0 + $1.currentPrice }
-        let gainers = stocks.filter { $0.isPositive }.count
-        let losers = stocks.filter { !$0.isPositive }.count
+        let count: Int = stocks.count
+        let totalValue: Double = stocks.reduce(0.0) { (accumulator: Double, stock: Stock) in
+            return accumulator + stock.currentPrice
+        }
+        let gainers: Int = stocks.filter { (stock: Stock) in stock.isPositive }.count
+        let losers: Int = stocks.filter { (stock: Stock) in !stock.isPositive }.count
         
         return (count: count, totalValue: totalValue, gainers: gainers, losers: losers)
     }
@@ -61,111 +64,228 @@ struct WatchlistView: View {
                 }
                 .padding(.horizontal)
                 
+                // Replace the watchlist statistics section with this enhanced version
                 if !watchlistStorage.watchlistStocks.isEmpty {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 20) {
-                            VStack {
-                                Text("\(watchlistStats.count)")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                Text("Stocks")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            VStack {
-                                Text(String(format: "$%.2f", watchlistStats.totalValue))
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                Text("Total Value")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            VStack {
-                                Text("\(watchlistStats.gainers)")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.green)
-                                Text("Gainers")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            
-                            VStack {
-                                Text("\(watchlistStats.losers)")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.red)
-                                Text("Losers")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
+                        // Stocks count card
+                        VStack(spacing: 6) {
+                            Text("\(watchlistStats.count)")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.textPrimary)
+                            Text("Stocks")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.textSecondary)
                         }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.backgroundSecondary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.cardBorder, lineWidth: 0.5)
+                                )
+                        )
+                        
+                        // Total value card
+                        VStack(spacing: 6) {
+                            Text(String(format: "$%.0f", watchlistStats.totalValue))
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(.textPrimary)
+                            Text("Total Value")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.backgroundSecondary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.cardBorder, lineWidth: 0.5)
+                                )
+                        )
+                        
+                        // Gainers card
+                        VStack(spacing: 6) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.stockGreen)
+                                Text("\(watchlistStats.gainers)")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(.stockGreen)
+                            }
+                            Text("Gainers")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.stockGreen.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.stockGreen.opacity(0.2), lineWidth: 0.5)
+                                )
+                        )
+                        
+                        // Losers card
+                        VStack(spacing: 6) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.down.right")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.stockRed)
+                                Text("\(watchlistStats.losers)")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(.stockRed)
+                            }
+                            Text("Losers")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.stockRed.opacity(0.05))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.stockRed.opacity(0.2), lineWidth: 0.5)
+                                )
+                        )
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
                 }
                 
                 if isLoadingWatchlist {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Loading your watchlist...")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                        Text("This may take a moment")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 16) {
+                        HStack(spacing: 8) {
+                            PulsingLoadingView(color: .primaryBlue, size: 16)
+                            
+                            Text("Loading watchlist...")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.textSecondary)
+                        }
+                        
+                        VStack(spacing: 8) {
+                            LoadingCardView()
+                            LoadingCardView()
+                        }
+                        .padding(.horizontal, 16)
                     }
-                    .padding(40)
+                    .padding(.top, 20)
                 } else if isRefreshing {
                     HStack(spacing: 8) {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Text("Refreshing stock prices...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                        PulsingLoadingView(color: .stockGreen, size: 14)
+                        
+                        Text("Refreshing prices...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.textSecondary)
                     }
-                    .padding()
+                    .padding(.vertical, 12)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.3), value: isRefreshing)
                 }
                 
                 // Watchlist Content
+                // Replace the empty watchlist state with this enhanced version
                 if watchlistStorage.watchlistStocks.isEmpty && !isLoadingWatchlist {
-                    VStack {
-                        Image(systemName: "star")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                            .padding()
+                    VStack(spacing: 32) {
+                        // Animated icon group
+                        ZStack {
+                            Circle()
+                                .fill(Color.primaryBlue.opacity(0.1))
+                                .frame(width: 120, height: 120)
+                            
+                            VStack(spacing: -8) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 24, weight: .medium))
+                                    .foregroundColor(.primaryBlue)
+                                
+                                Image(systemName: "chart.line.uptrend.xyaxis")
+                                    .font(.system(size: 32, weight: .medium))
+                                    .foregroundColor(.primaryBlue)
+                            }
+                        }
                         
-                        Text("Your watchlist is empty")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                        VStack(spacing: 16) {
+                            Text("Your watchlist is empty")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundColor(.textPrimary)
+                            
+                            Text("Add stocks to your watchlist to track\ntheir performance and get quick updates")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
+                        }
                         
-                        Text("Search for stocks to add them to your watchlist")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding()
+                        VStack(spacing: 12) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primaryBlue)
+                                
+                                Text("Search for stocks in the Search tab")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                                
+                                Spacer()
+                            }
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "plus.circle")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primaryBlue)
+                                
+                                Text("Tap 'Add to Watchlist' on any stock")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                                
+                                Spacer()
+                            }
+                            
+                            HStack(spacing: 12) {
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.primaryBlue)
+                                
+                                Text("View all your saved stocks here")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.textPrimary)
+                                
+                                Spacer()
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.backgroundSecondary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.cardBorder, lineWidth: 0.5)
+                                )
+                        )
+                        
+                        Spacer()
                     }
-                    .padding()
-                } else {
+                    .padding(.horizontal, 20)
+                    .padding(.top, 40)
+                } else if !watchlistStorage.watchlistStocks.isEmpty {
                     List {
-                        // Replace the existing ForEach in your watchlist List with this NavigationLink version
                         ForEach(watchlistStorage.watchlistStocks) { stock in
-                            NavigationLink(destination: StockDetailView(stock: stock)) {
-                                StockRowView(stock: stock)
-                            }
-                            .navigationViewStyle(StackNavigationViewStyle())
-                            .buttonStyle(PlainButtonStyle())
-                            .swipeActions(edge: .trailing) {
-                                Button("Remove") {
-                                    watchlistStorage.removeStock(stock)
+                            StockRowView(stock: stock)
+                                .swipeActions(edge: .trailing) {
+                                    Button("Remove") {
+                                        watchlistStorage.removeStock(stock)
+                                    }
+                                    .tint(.red)
                                 }
-                                .tint(.red)
-                            }
                         }
                     }
                 }
@@ -221,7 +341,6 @@ struct WatchlistView: View {
                     }
                 }
             }
-            // Add these confirmation dialogs after the .toolbar modifier
             .confirmationDialog("Delete Stock", isPresented: $showingDeleteConfirmation, presenting: stockToDelete) { stock in
                 Button("Delete \(stock.symbol)", role: .destructive) {
                     confirmDeleteStock()
@@ -258,7 +377,6 @@ struct WatchlistView: View {
         .navigationViewStyle(StackNavigationViewStyle())
         .animation(.easeInOut(duration: 0.3), value: isRefreshing)
         .toast(toastManager)
-        // Add undo overlay after the toast modifier
         .overlay(
             VStack {
                 Spacer()
@@ -379,7 +497,6 @@ struct WatchlistView: View {
     private func deleteSelectedStocks() {
         showingBulkDeleteConfirmation = true
         let stocksToDelete = watchlistStorage.watchlistStocks.filter { selectedStocks.contains($0.id) }
-        
         
         exitEditMode()
         
