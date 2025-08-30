@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StockRowView: View {
     let stock: Stock
+    var onTap: (() -> Void)? = nil
     @State private var isPressed = false
     
     var body: some View {
@@ -79,6 +80,9 @@ struct StockRowView: View {
             // Add haptic feedback
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.impactOccurred()
+            
+            // Execute the provided action
+            onTap?()
         }
         .onLongPressGesture(minimumDuration: 0) { pressing in
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

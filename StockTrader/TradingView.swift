@@ -40,7 +40,34 @@ struct TradingView: View {
     }
     
     var body: some View {
-        NavigationView {
+        // Remove NavigationView since this will be presented in a sheet
+        VStack(spacing: 20) {
+            // Navigation bar replacement for sheet
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(.blue)
+                
+                Spacer()
+                
+                Text("Trade \(stock.symbol)")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                // Invisible button to balance the HStack
+                Button("Cancel") {
+                    // Do nothing
+                }
+                .foregroundColor(.blue)
+                .opacity(0)
+            }
+            .padding(.horizontal)
+            
+            Divider()
+            
             VStack(spacing: 20) {
                 // Stock Information
                 VStack(spacing: 12) {
@@ -201,35 +228,30 @@ struct TradingView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Trade \(stock.symbol)")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(
-                leading: Button("Cancel") {
+            
+            Spacer()
+        }
+        .alert(alertTitle, isPresented: $showingAlert) {
+            Button("OK") {
+                // Only dismiss after successful buy/sell
+                if alertTitle == "Success" {
                     dismiss()
                 }
-            )
-            .alert(alertTitle, isPresented: $showingAlert) {
-                Button("OK") {
-                    // Only dismiss after successful buy/sell
-                    if alertTitle == "Success" {
-                        dismiss()
-                    }
-                }
-            } message: {
-                Text(alertMessage)
             }
-            .confirmationDialog("Confirm Purchase", isPresented: $showingBuyConfirmation) {
-                Button("Buy \(quantity) Share\(quantity == 1 ? "" : "s") for \(String(format: "$%.2f", totalBuyCost))", role: .none) {
-                    performBuy()
-                }
-                Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+        .confirmationDialog("Confirm Purchase", isPresented: $showingBuyConfirmation) {
+            Button("Buy \(quantity) Share\(quantity == 1 ? "" : "s") for \(String(format: "$%.2f", totalBuyCost))", role: .none) {
+                performBuy()
             }
-            .confirmationDialog("Confirm Sale", isPresented: $showingSellConfirmation) {
-                Button("Sell \(min(quantity, maxSellQuantity)) Share\(min(quantity, maxSellQuantity) == 1 ? "" : "s") for \(String(format: "$%.2f", totalSellProceeds))", role: .none) {
-                    performSell()
-                }
-                Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) { }
+        }
+        .confirmationDialog("Confirm Sale", isPresented: $showingSellConfirmation) {
+            Button("Sell \(min(quantity, maxSellQuantity)) Share\(min(quantity, maxSellQuantity) == 1 ? "" : "s") for \(String(format: "$%.2f", totalSellProceeds))", role: .none) {
+                performSell()
             }
+            Button("Cancel", role: .cancel) { }
         }
     }
     

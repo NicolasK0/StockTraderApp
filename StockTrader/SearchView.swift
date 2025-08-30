@@ -217,6 +217,7 @@ struct SearchView: View {
             .navigationTitle("Search")
             .sheet(isPresented: $showingTradingView) {
                 if let stock = selectedStockForTrading {
+                    // Remove NavigationView from TradingView when presented in sheet
                     TradingView(stock: stock)
                 }
             }
@@ -326,10 +327,10 @@ struct SearchView: View {
             }
             .padding(.horizontal, 16)
             
-            // Enhanced results list - Using Button wrapper to ensure proper tap handling
+            // Enhanced results list - Pass the action to StockRowView
             LazyVStack(spacing: 8) {
                 ForEach(sortedSearchResults) { stock in
-                    Button(action: {
+                    StockRowView(stock: stock) { 
                         // Add haptic feedback
                         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
                         impactFeedback.impactOccurred()
@@ -337,11 +338,8 @@ struct SearchView: View {
                         // Navigate to detail view - using the existing sheet mechanism
                         selectedStockForTrading = stock
                         showingTradingView = true
-                    }) {
-                        StockRowView(stock: stock)
-                            .padding(.horizontal, 16)
                     }
-                    .buttonStyle(PlainButtonStyle()) // Remove default button styling
+                    .padding(.horizontal, 16)
                 }
             }
             .background(Color(.systemBackground))
