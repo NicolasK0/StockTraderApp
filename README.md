@@ -83,4 +83,4 @@ Run on simulator or a device with iOS 16+
 ## 📄 License & Contact
 - License: MIT  
 - Author: Nicolas Kousoulas  
-- Contact: [LinkedIn](https://www.linkedin.com/in/your-link) | your.email@example.com
+- Contact: [LinkedIn]https://www.linkedin.com/in/nicolas-kousoulas/ | nkous05@gmail.com
